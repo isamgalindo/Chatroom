@@ -1,40 +1,46 @@
 defmodule Task2 do
-  use GenServer
-  def start_link(_opts) do
-    GenServer.start_link(__MODULE__, [], name: __MODULE__)
+  def start do
+    spawn_link(fn -> loop(%{users: []}) end)
   end
 
-  def init(_args) do
-    {:ok, []} # Initial state: an empty list of subscribers
+  defp loop(state) do
+    receive do
+      {:join, user_id} ->
+        IO.puts("El usuario #{inspect(user_id)} se unió al chatroom")
+        loop(%{state | users: state.users ++ [user_id]})
+
+      {:leave, user_id} ->
+        IO.puts("El ususario #{inspect(user_id)} salió del chatroom")
+        loop(%{state | users: Enum.reject(state.users, &(&1 == user_id))})
+
+      {:send_message, user_id, message} ->
+        Enum.each(state.users, fn id -> send(id, {:new_message, user_id, message}) end)
+        IO.puts("El usuario #{inspect(user_id)} envió: #{message}")
+        loop(state)
+
+      {:get_users, caller} ->
+        send(caller, {:users, state.users})
+        loop(state)
+    end
   end
 
-  # User wants to join the chat room
-  def join(pid) do
-    GenServer.cast(__MODULE__, {:join, pid})
+  def join(chat_room) do
+    send(chat_room, {:join, self()})
   end
 
-  # User sends a message
-  def send_message(message) do
-    GenServer.cast(__MODULE__, {:message, message})
+  def leave(chat_room) do
+    send(chat_room, {:leave, self()})
   end
 
-  # User leaves the chat room
-  def leave(pid) do
-    GenServer.cast(__MODULE__, {:leave, pid})
+  def send_message(chat_room, message) do
+    send(chat_room, {:send_message, self(), message})
   end
 
-  # Server side handling
-  def handle_cast({:join, pid}, subscribers) do
-    {:noreply, [pid | subscribers]}
-  end
-
-  def handle_cast({:message, message}, subscribers) do
-    Enum.each(subscribers, fn pid -> send(pid, {:new_message, message}) end)
-    {:noreply, subscribers}
-  end
-
-  def handle_cast({:leave, pid}, subscribers) do
-    {:noreply, List.delete(subscribers, pid)}
-  end
+  def get_users(chat_room) do
+    send(chat_room, {:get_users, self()})
+    receive do
+      {:users, users} -> users
+    end
+end
 
 end

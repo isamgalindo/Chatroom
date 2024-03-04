@@ -1,21 +1,10 @@
 # Task2
 
-**TODO: Add description**
+**How to run it**
+Pararse en la carpeta incial de proyecto.
+cd task2
+Correr lo siguiente: iex -S mix
 
-## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `task2` to your list of dependencies in `mix.exs`:
 
-```elixir
-def deps do
-  [
-    {:task2, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/task2>.
 
